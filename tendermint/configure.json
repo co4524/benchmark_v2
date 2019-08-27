@@ -1,0 +1,5 @@
+{
+    "home_path" : "/home/caideyi" ,
+    "scp_instance_name" : "tendermint0" ,
+    "base_ip" : "10.140.4"
+}
