@@ -2,12 +2,13 @@ const ethTx = require('ethereumjs-tx');
 const fs = require('fs');
 
 const PATH_CONFIGURE =  require('../configure.json')
-const PATH_HOME = PATH_CONFIGURE.home_path
-const PATH_PRIVKEY = PATH_HOME + '/benchmark_v2/tendermint/src/testAccount-privKey'
-const PATH_RAW_TX = PATH_HOME + '/benchmark_v2/tendermint/src/RawTx'
+// const PATH_HOME = PATH_CONFIGURE.home_path
+const PATH_PRIVKEY = './testAccount-privKey'
+const PATH_RAW_TX = './RawTx'
+
 const DES_ADDRESS = '0x6666666666666666666666666666666666666666'   //The address you want to send money
 
-const ITER = parseInt( process.argv[2] ,10) ; // generate N numbers of txs 
+const ITER = parseInt( process.argv[2] ,10) ; // generate N numbers of txs
 const NONCE = parseInt( process.argv[3] ,10) ; // nonce value
 
 main()
@@ -20,7 +21,8 @@ function main(){
 
     //  Generate Raw transactions
     console.log( 'Generate ' , ITER , 'Rawtx' );
-    let raw_tx = generateRawTxs( NONCE , priv_key , ITER );
+    // let raw_tx = generateRawTxs( NONCE , priv_key , ITER );
+    let raw_tx = generateTxs( priv_key , ITER );
 
     //  Output RawTx to [output_dir]
     console.log( 'Write RawTx File' );
@@ -28,26 +30,52 @@ function main(){
 
 }
 
+function getPrivKey (_path) {
+  return fs.readFileSync(_path, 'utf-8').split('\n').slice(0, -1).map(raw => {
+    return Buffer.from(raw.match(/(0x[a-f0-9]+)/g))
+  })
+}
+
 
 //Read privKey buf from [dir]
-function getPrivKey ( _path ){
-    let arr;
-    let str;
-    let privkey = [];
-    arr = fs.readFileSync(_path).toString().split("\n");
-    // -1是因為切割後陣列最後面會多出一個空位置
-    for (let i =0; i < arr.length-1; i++ ){
-        const buf = new Buffer.from([0x8c, 0x3d, 0x71, 0x0e, 0xef, 0x05, 0x0e, 0xf3, 0xa1, 0x3d, 0x03, 0x5a, 0xd0, 0x05, 0xd0, 0x9e, 0x9d, 0x6b, 0xc7, 0x57, 0x6a, 0xf3, 0x5a, 0xd2, 0xf1, 0x3f, 0xf9, 0xde, 0xd3, 0x65, 0x29, 0x45]);
-        str = arr[i].split(" ");
-        for(let j =0; j < buf.length; j++){
-            buf[j] = str[j+1];
-            //+1 因為_path裡面array第一個值是序列
-        }
+// function _getPrivKey ( _path ){
+//     let arr;
+//     let str;
+//     let privkey = [];
+//     arr = fs.readFileSync(_path).toString().split("\n");
+//     // -1是因為切割後陣列最後面會多出一個空位置
+//     for (let i =0; i < arr.length-1; i++ ){
+//         const buf = new Buffer.from([0x8c, 0x3d, 0x71, 0x0e, 0xef, 0x05, 0x0e, 0xf3, 0xa1, 0x3d, 0x03, 0x5a, 0xd0, 0x05, 0xd0, 0x9e, 0x9d, 0x6b, 0xc7, 0x57, 0x6a, 0xf3, 0x5a, 0xd2, 0xf1, 0x3f, 0xf9, 0xde, 0xd3, 0x65, 0x29, 0x45]);
+//         str = arr[i].split(" ");
+//         for(let j =0; j < buf.length; j++){
+//             buf[j] = str[j+1];
+//             //+1 因為_path裡面array第一個值是序列
+//         }
+//
+//         privkey[i] = buf;
+//     }
+//
+//     return privkey;
+// }
 
-        privkey[i] = buf;
-    }
 
-    return privkey;
+function generateTxs (_privateKey, _iter) {
+  let txs = []
+
+  while (_iter--) {
+    let raw_tx = new ethTx({
+      nonce: _iter,
+      to: DES_ADDRESS,
+      gasLimit: '0x30000',
+      value: '0x01'
+    })
+
+    raw_tx.sign(_privateKey[_iter % _privateKey.length])
+
+    txs.push('0x' + raw_tx.serialize().toString('hex'))
+  }
+
+  return txs
 }
 
 
@@ -74,31 +102,35 @@ function generateRawTxs ( _nonce , _privateKey , _iter ) {
     return raw_tx_list;
 }
 
-
-function writeRawTx( _path , _array) { 
-
-    for (let i = 0 ; i < _array.length ; i ++){
-
-        // if first write over-write file
-        if(i == 0){
-
-            fs.writeFileSync( _path , _array[i] + "\n" , function (err) {
-                if (err)
-                    console.log(err);
-            });
-
-        }
-
-        // else : append file
-        else{
-
-            fs.appendFileSync( _path , _array[i] + "\n" , function (err) {
-                if (err)
-                    console.log(err);
-                else
-                    console.log('Write operation complete.');
-            });
-        }
-    }
-
+function writeRawTx(_path, _array) {
+  fs.writeFileSync(_path, _array.join('\n'))
 }
+
+
+// function writeRawTx( _path , _array) {
+//
+//     for (let i = 0 ; i < _array.length ; i ++){
+//
+//         // if first write over-write file
+//         if(i == 0){
+//
+//             fs.writeFileSync( _path , _array[i] + "\n" , function (err) {
+//                 if (err)
+//                     console.log(err);
+//             });
+//
+//         }
+//
+//         // else : append file
+//         else{
+//
+//             fs.appendFileSync( _path , _array[i] + "\n" , function (err) {
+//                 if (err)
+//                     console.log(err);
+//                 else
+//                     console.log('Write operation complete.');
+//             });
+//         }
+//     }
+//
+// }
