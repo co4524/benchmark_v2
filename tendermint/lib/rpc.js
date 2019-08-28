@@ -8,7 +8,7 @@ module.exports = {
     },
     tendermintInfo: async (baseURL) => {
       try {
-        return JSON.parse(await request.get(`${baseURL}/status`))
+        return JSON.parse(await request(`${baseURL}/status`))
       } catch (err) {
         throw err
       }
