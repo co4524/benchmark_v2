@@ -42,9 +42,12 @@ const sendTxs = () => {
   }
 
   app.sent_log = ''
+  app.reset_interval = false
 
   app.send_txs_interval = setInterval(() => {
-    if (0 < app.sent_tx && 0 === app.sent_tx % app.max_txs_in_period) {
+    console.log(app.sent_tx)
+
+    if (app.reset_interval && 0 === app.sent_tx % app.max_txs_in_period) {
 
       clearInterval(app.send_txs_interval)
 
@@ -55,8 +58,10 @@ const sendTxs = () => {
 
     else {
       console.log(`send ${INPUT_RATE} txs`)
-      line_reader.resume()
 
+      app.reset_interval = true
+
+      line_reader.resume()
     }
   }, 1000)
 }
