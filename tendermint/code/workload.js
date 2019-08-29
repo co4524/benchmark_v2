@@ -7,10 +7,10 @@ const PATH_RAW_TX = PATH_HOME + '/benchmark_v2/tendermint/res/RawTx'
 const PATH_REQEST_TIME = PATH_HOME + '/benchmark_v2/tendermint/res/txRequestTime'
 const line_reader = new (require('line-by-line'))(PATH_RAW_TX)
 
-const INPUT_RATE = parseInt( process.argv[2] ,10) 
-const DURATION_TIME = parseInt( process.argv[3] ,10) 
-const REPEAT = parseInt( process.argv[4] ,10) 
-const SLEEP_TIME = parseInt( process.argv[5] ,10) 
+const INPUT_RATE = parseInt( process.argv[2] ,10)
+const DURATION_TIME = parseInt( process.argv[3] ,10)
+const REPEAT = parseInt( process.argv[4] ,10)
+const SLEEP_TIME = parseInt( process.argv[5] ,10)
 
 const app = {
   max_txs_in_period: INPUT_RATE * DURATION_TIME,
@@ -34,29 +34,30 @@ line_reader.on('line', tx => {
   if (0 === app.sent_tx % INPUT_RATE) {
     line_reader.pause()
   }
-
-  if (0 === app.sent_tx % app.max_txs_in_period) {
-
-    clearInterval(app.send_txs_interval)
-
-    console.log(`clearInterval\nTrasaction Number ${app.sent_tx}`)
-
-    fs.appendFileSync(PATH_REQEST_TIME, app.sent_log)
-
-    line_reader.pause()
-  }
-
-  if (app.sent_tx === app.max_txs_in_round) {
-    process.exit()
-  }
 })
 
 const sendTxs = () => {
+  if (app.sent_tx === app.max_txs_in_round) {
+    return process.exit()
+  }
+
   app.sent_log = ''
 
   app.send_txs_interval = setInterval(() => {
-    console.log(`send ${INPUT_RATE} txs`)
-    line_reader.resume()
+    if (0 < app.sent_tx && 0 === app.sent_tx % app.max_txs_in_period) {
+
+      clearInterval(app.send_txs_interval)
+
+      console.log(`clearInterval\nTrasaction Number ${app.sent_tx}`)
+
+      fs.appendFileSync(PATH_REQEST_TIME, app.sent_log)
+    }
+
+    else {
+      console.log(`send ${INPUT_RATE} txs`)
+      line_reader.resume()
+
+    }
   }, 1000)
 }
 
