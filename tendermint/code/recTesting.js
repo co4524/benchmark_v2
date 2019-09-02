@@ -5,13 +5,13 @@ const PATH_HOME = PATH_CONFIGURE.home_path
 const URL = require("../data/baseURL.json")
 const PATH_RAW_TX = PATH_HOME + '/benchmark_v2/tendermint/res/RawTx'
 const PATH_REQEST_TIME = PATH_HOME + '/benchmark_v2/tendermint/res/txRequestTime'
-//const line_reader = new (require('line-by-line'))(PATH_RAW_TX)
+const line_reader = new (require('line-by-line'))(PATH_RAW_TX)
 
 const INPUT_RATE = parseInt( process.argv[2] ,10)
 const DURATION_TIME = parseInt( process.argv[3] ,10)
 const REPEAT = parseInt( process.argv[4] ,10)
-const SLEEP_TIME = parseInt( process.argv[5] ,10)
-const SlICE = parseInt( process.argv[6] ,10)  // for testing
+//const SLEEP_TIME = parseInt( process.argv[5] ,10)
+const SlICE = parseInt( process.argv[5] ,10)
 
 const app = {
   max_txs_in_period: INPUT_RATE * DURATION_TIME,
@@ -25,49 +25,32 @@ console.log(app)
 if (fs.existsSync(PATH_REQEST_TIME))
   fs.unlinkSync(PATH_REQEST_TIME)
  
-const txs = fs.readFileSync(PATH_RAW_TX, 'utf-8').split('\n').slice(SlICE)  //SLICE for testing
+const txs = fs.readFileSync(PATH_RAW_TX, 'utf-8').split('\n').slice(SlICE)
 
-const onePeriodTest = async () => {
-	app.start = 0
-	return new Promise((resolve , reject) => {
-		let interval = setInterval(() => {
-			console.log("Send transaction")
-			for (let i = 0; i < INPUT_RATE; i++) {
-				API.sendTx(URL[i%URL.length], txs[app.sent_tx++])
-				app.sent_log += `${txs[app.start++]}, ${Date.now()}\n`
-			}
+const a = () => {
+	let interval = setInterval(() => {
+		console.log(Date.now(), app.start, app.end, ' STARTED')
 
-			if (app.start == app.max_txs_in_period){
-				clearInterval(interval)
-				fs.appendFileSync(PATH_REQEST_TIME, app.sent_log)
-				app.sent_log = ''
-				console.log(app.max_txs_in_period)
-				resolve()
-			}
-		}, 1000)
-	})
-}
-
-const oneRoundTest = () => {
-	let interval = setInterval( async () => {
-		await onePeriodTest()
-		console.log(app.sent_tx , app.max_txs_in_round)
-		if(app.sent_tx==app.max_txs_in_round){
-			clearInterval(interval)
+		for (let i = 0; i < INPUT_RATE; i++) {
+			API.sendTx(URL[0], txs[app.start++])
+			
+			// app.sent_log += `${txs[app.start++]}, ${Date.now()}\n`
 		}
-	}, (DURATION_TIME + SLEEP_TIME) * 1000)
+
+		// fs.appendFileSync(PATH_REQEST_TIME, app.sent_log)
+		app.sent_log = ''
+
+		console.log(Date.now(), app.start, app.end, ' FINISHED')
+
+		if (app.start >= app.end)
+			clearInterval(interval)
+	}, 1000)
 }
 
-async function main(){
-	await onePeriodTest()
-	console.log(app.sent_tx , app.max_txs_in_round)
-	oneRoundTest()
-}
+app.start = 0
+app.end = INPUT_RATE * DURATION_TIME
+a()
 
-main()
-// onePeriodTest()
-// console.log(app.sent_tx , app.max_txs_in_round)
-// oneRoundTest()
 // line_reader.on('error', err => { throw(err) })
 // 
 // line_reader.pause()
