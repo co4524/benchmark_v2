@@ -5,16 +5,9 @@ const fs = require('fs')
 const config = require('../../configure.json')
 const DES_ADDRESS = '0x6666666666666666666666666666666666666666' // The address you want to send money
 
-// const URL = require("../data/baseURL.json")
-// const PATH_CONFIGURE =  require('../configure.json')
-// const PATH_HOME = PATH_CONFIGURE.home_path
-// const PATH_PRIVKEY = `${PATH_HOME}/benchmark_v2/tendermint/data/testAccount-privKey`
-// const PATH_RAW_TX = `${PATH_HOME}/benchmark_v2/tendermint/res/RawTx`
-// const PATH_HASH_TX = `${PATH_HOME}/benchmark_v2/tendermint/res/HashTx`
-
 const size = {
   batch: 10000,
-  raw_txs: 1000000
+  raw_txs: 100000
 }
 
 // reset output data
@@ -36,7 +29,7 @@ const priv_key = fs.readFileSync(config.tendermint.path.private_key, 'utf-8').sp
 
   while (size.raw_txs--) {
     let transaction = new ethTx({
-      nonce: size.raw_txs,
+      nonce: size.raw_txs + 4,
       to: DES_ADDRESS,
       gasLimit: '0x30000',
       value: '0x01'
@@ -55,7 +48,7 @@ const priv_key = fs.readFileSync(config.tendermint.path.private_key, 'utf-8').sp
       let receipts = await Promise.all(raw_txs.map((raw_tx, i) => sendTx(config.tendermint.urls[i % config.tendermint.urls.length], raw_tx)))
 
       for (let i in raw_txs) {
-        raw_tx_hashes[raw_txs[i]] = JSON.parse(receipts).result.hash
+        raw_tx_hashes[raw_txs[i]] = JSON.parse(receipts[i]).result.hash
       }
 
       fs.appendFileSync(config.tendermint.path.raw_tx, `${raw_txs.join('\n')}\n`)
