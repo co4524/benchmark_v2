@@ -1,17 +1,12 @@
-const API = require('../lib/rpc.js')
+const sendTx = require(`../${process.argv[2]}/lib/rpc.js`).sendTx
 const fs = require('fs')
-const PATH_CONFIGURE =  require('../configure.json')
-const PATH_HOME = PATH_CONFIGURE.home_path
-const URL = require("../data/baseURL.json")
-const PATH_RAW_TX = PATH_HOME + '/benchmark_v2/tendermint/res/RawTx'
-const PATH_REQEST_TIME = PATH_HOME + '/benchmark_v2/tendermint/res/txRequestTime'
-//const line_reader = new (require('line-by-line'))(PATH_RAW_TX)
+const config =  require('../configure.json')
 
-const INPUT_RATE = parseInt( process.argv[2] ,10)
-const DURATION_TIME = parseInt( process.argv[3] ,10)
-const REPEAT = parseInt( process.argv[4] ,10)
-const SLEEP_TIME = parseInt( process.argv[5] ,10)
-const SlICE = parseInt( process.argv[6] ,10)  // for testing
+const INPUT_RATE = parseInt( process.argv[3] ,10)
+const DURATION_TIME = parseInt( process.argv[4] ,10)
+const REPEAT = parseInt( process.argv[5] ,10)
+const SLEEP_TIME = parseInt( process.argv[6] ,10)
+const SlICE = parseInt( process.argv[7] ,10)  // for testing
 
 const app = {
   max_txs_in_period: INPUT_RATE * DURATION_TIME,
@@ -22,33 +17,34 @@ const app = {
 console.log(app)
 
 // reset txrequest_time file
-if (fs.existsSync(PATH_REQEST_TIME))
-  fs.unlinkSync(PATH_REQEST_TIME)
+if (fs.existsSync(config[process.argv[2]].path.tx_request_time))
+  fs.unlinkSync(config[process.argv[2]].path.tx_request_time)
  
-const txs = fs.readFileSync(PATH_RAW_TX, 'utf-8').split('\n').slice(SlICE)  //SLICE for testing
+const txs = fs.readFileSync(config[process.argv[2]].path.raw_tx, 'utf-8').split('\n').slice(SlICE)  //SLICE for testing
 
 const onePeriodTest = async () => {
 	app.start = 0
 	return new Promise((resolve , reject) => {
 		let interval = setInterval(() => {
-			console.log("Send transaction")
+			console.log(`Send transaction ${Date.now()}`)
 			for (let i = 0; i < INPUT_RATE; i++) {
-				API.sendTx(URL[i%URL.length], txs[app.sent_tx++])
+				sendTx(config[process.argv[2]].urls[i%config[process.argv[2]].urls.length], txs[app.sent_tx++])
 				app.sent_log += `${txs[app.start++]}, ${Date.now()}\n`
 			}
 
 			if (app.start == app.max_txs_in_period){
 				clearInterval(interval)
-				fs.appendFileSync(PATH_REQEST_TIME, app.sent_log)
+				fs.appendFileSync(config[process.argv[2]].path.tx_request_time, app.sent_log)
 				app.sent_log = ''
-				console.log(app.max_txs_in_period)
 				resolve()
 			}
 		}, 1000)
 	})
 }
 
-const oneRoundTest = () => {
+;(async function () {
+	await onePeriodTest()
+	console.log(app.sent_tx , app.max_txs_in_round)
 	let interval = setInterval( async () => {
 		await onePeriodTest()
 		console.log(app.sent_tx , app.max_txs_in_round)
@@ -56,73 +52,4 @@ const oneRoundTest = () => {
 			clearInterval(interval)
 		}
 	}, (DURATION_TIME + SLEEP_TIME) * 1000)
-}
-
-async function main(){
-	await onePeriodTest()
-	console.log(app.sent_tx , app.max_txs_in_round)
-	oneRoundTest()
-}
-
-main()
-// onePeriodTest()
-// console.log(app.sent_tx , app.max_txs_in_round)
-// oneRoundTest()
-// line_reader.on('error', err => { throw(err) })
-// 
-// line_reader.pause()
-// line_reader.on('line', tx => {
-//   // app.sent_log += `${tx}, ${Date.now()}\n`
-//   // API.sendTx(URL[++app.sent_tx % URL.length], tx)
-// 
-//   app.txs.push([++app.sent_tx, tx])
-// 
-//   if (0 === app.sent_tx % INPUT_RATE) {
-//     line_reader.pause()
-//   }
-// })
-// 
-// const sendTxs = () => {
-//   if (app.sent_tx === app.max_txs_in_round) {
-//     return process.exit()
-//   }
-// 
-//   app.sent_log = ''
-//   app.reset_interval = false
-//   app.txs = []
-// 
-//   app.send_txs_interval = setInterval(() => {
-//     console.log('app.sent_tx: ', app.sent_tx, 'app.txs.length: ', app.txs.length, 'timestamp: ', Date.now())
-// 
-//     if (app.reset_interval && 0 === app.sent_tx % app.max_txs_in_period) {
-// 
-//       clearInterval(app.send_txs_interval)
-// 
-//       console.log(`clearInterval\nTrasaction Number ${app.sent_tx}`)
-// 
-//       fs.appendFileSync(PATH_REQEST_TIME, app.sent_log)
-//     }
-// 
-//     else {
-//       console.log(`send ${INPUT_RATE} txs`)
-// 
-//       app.reset_interval = true
-// 
-// 	  Promise.all(app.txs.map(it => {
-// 	  	return new Promise((resolve, reject) => {
-// 	  		API.sendTx(URL[it[0] % URL.length], it[1])
-// 	  
-// 	  		app.sent_log += `${it[1]}, ${Date.now()}\n`
-// 	  	})
-// 	  }))
-// 
-// 	  app.txs = []
-// 
-//       line_reader.resume()
-//     }
-//   }, 1000)
-// }
-// 
-// sendTxs()
-// 
-// setInterval(sendTxs, (DURATION_TIME + SLEEP_TIME) * 1000)
+})()

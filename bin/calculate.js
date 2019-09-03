@@ -1,18 +1,14 @@
 const fs = require('fs')
 var stats = require("stats-lite")
-const PATH_CONFIGURE =  require('../configure.json')
-const PATH_HOME = PATH_CONFIGURE.home_path
-const PATH_BLOCK_COMMIT_TIME = `${PATH_HOME}/Benchmarking/t-tendermint/data/blockCommitTime.txt`
-const PATH_BLOCK_TX_NUM = `${PATH_HOME}/Benchmarking/t-tendermint/data/blockTxNum.txt`
-const PATH_PREPROCESS_REQEST_TIME = `${PATH_HOME}/benchmark_v2/tendermint/res/preprocess_txRequestTime`
+const config =  require('../configure.json')
 
-const block_commit_time = fs.readFileSync(PATH_BLOCK_COMMIT_TIME, 'utf-8').split('\n')
-const block_tx_num = fs.readFileSync(PATH_BLOCK_TX_NUM, 'utf-8').split('\n')
-const tx_request_time = fs.readFileSync(PATH_PREPROCESS_REQEST_TIME, 'utf-8').split('\n')
+const block_commit_time = fs.readFileSync(config[process.argv[2]].path.block_commit_time, 'utf-8').split('\n')
+const block_tx_num = fs.readFileSync(config[process.argv[2]].path.block_tx_num, 'utf-8').split('\n')
+const tx_request_time = fs.readFileSync(config[process.argv[2]].path.preprocess_tx_request_time, 'utf-8').split('\n')
 
-const INPUT_RATE = parseInt( process.argv[2] ,10)
-const DURATION_TIME = parseInt( process.argv[3] ,10)
-const REPEAT = parseInt( process.argv[4] ,10)
+const INPUT_RATE = parseInt( process.argv[3] ,10)
+const DURATION_TIME = parseInt( process.argv[4] ,10)
+const REPEAT = parseInt( process.argv[5] ,10)
 
 const app = {
     max_txs_in_period: INPUT_RATE * DURATION_TIME,

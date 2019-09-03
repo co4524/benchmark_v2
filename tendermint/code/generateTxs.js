@@ -7,7 +7,7 @@ const DES_ADDRESS = '0x6666666666666666666666666666666666666666' // The address 
 
 const size = {
   batch: 10000,
-  raw_txs: 100000
+  raw_txs: 1000000
 }
 
 // reset output data
@@ -29,7 +29,7 @@ const priv_key = fs.readFileSync(config.tendermint.path.private_key, 'utf-8').sp
 
   while (size.raw_txs--) {
     let transaction = new ethTx({
-      nonce: size.raw_txs + 4,
+      nonce: size.raw_txs,
       to: DES_ADDRESS,
       gasLimit: '0x30000',
       value: '0x01'
