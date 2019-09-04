@@ -6,13 +6,11 @@ const config = require('../../configure.json')
 const DES_ADDRESS = '0x6666666666666666666666666666666666666666' // The address you want to send money
 
 const size = {
-  batch: 10000,
   raw_txs: 1000000
 }
 
 // reset output data
 
-fs.existsSync(config.tendermint.path.raw_tx) && fs.unlinkSync(config.tendermint.path.raw_tx)
 fs.existsSync(config.tendermint.path.raw_tx_hash) && fs.unlinkSync(config.tendermint.path.raw_tx_hash)
 
 // private keys
@@ -23,7 +21,7 @@ const priv_key = fs.readFileSync(config.tendermint.path.private_key, 'utf-8').sp
 
 ;(async function () {
 
-  let raw_txs = [], raw_tx_hashes = {}
+  let raw_tx_hashes = {}
 
   // generate transactions
 
@@ -38,23 +36,12 @@ const priv_key = fs.readFileSync(config.tendermint.path.private_key, 'utf-8').sp
     // sign transactions
 
     transaction.sign(priv_key[size.raw_txs % priv_key.length])
-    raw_txs.push('0x' + transaction.serialize().toString('hex'))
+
+    let raw_tx = '0x' + transaction.serialize().toString('hex')
 
     // get transaction hash and output
 
-    if (raw_txs.length === size.batch) {
-      console.log(`Generate ${size.batch} transations & hash , Remaining amount : ${size.raw_txs}`)
-
-      let receipts = await Promise.all(raw_txs.map((raw_tx, i) => sendTx(config.tendermint.urls[i % config.tendermint.urls.length], raw_tx)))
-
-      for (let i in raw_txs) {
-        raw_tx_hashes[raw_txs[i]] = JSON.parse(receipts[i]).result.hash
-      }
-
-      fs.appendFileSync(config.tendermint.path.raw_tx, `${raw_txs.join('\n')}\n`)
-
-      raw_txs = []
-    }
+    raw_tx_hashes[raw_tx] = JSON.parse(await sendTx(config.tendermint.urls[size.raw_txs % config.tendermint.urls.length], raw_tx)).result.hash
   }
 
   fs.writeFileSync(config.tendermint.path.raw_tx_hash, JSON.stringify(raw_tx_hashes))
