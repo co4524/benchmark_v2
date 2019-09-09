@@ -1,111 +1,64 @@
 const API = require('../lib/rpc.js')
+const config = require('../../configure.json')
+const raw_tx_hash = require(config.tendermint.path.raw_tx_hash)
 const fs = require('fs')
-const PATH_CONFIGURE =  require('../configure.json')
-const PATH_HOME = PATH_CONFIGURE.home_path
-const URL = require("../data/baseURL.json")
-const PATH_RAW_TX = PATH_HOME + '/benchmark_v2/tendermint/res/RawTx'
-const PATH_REQEST_TIME = PATH_HOME + '/benchmark_v2/tendermint/res/txRequestTime'
-const line_reader = new (require('line-by-line'))(PATH_RAW_TX)
 
-const INPUT_RATE = parseInt( process.argv[2] ,10)
-const DURATION_TIME = parseInt( process.argv[3] ,10)
-const REPEAT = parseInt( process.argv[4] ,10)
-//const SLEEP_TIME = parseInt( process.argv[5] ,10)
-const SlICE = parseInt( process.argv[5] ,10)
+const out_put_node = ["node0" , "node1" ,"node2" ,"node3" ]
 
+const [NODE_NUM ,INPUT_RATE , SLICE] = process.argv.slice(2, 5).map(it => parseInt(it))
+const raw_txs = Object.keys(raw_tx_hash).slice(SLICE,SLICE+INPUT_RATE) // SLICE for testing
 const app = {
-  max_txs_in_period: INPUT_RATE * DURATION_TIME,
-  max_txs_in_round: INPUT_RATE * DURATION_TIME * REPEAT,
-  sent_log: '',
-  sent_tx: 0
+	start: 0 ,
+	end: INPUT_RATE
 }
-console.log(app)
+// ;(async function () {
+// 	let time = []
+// 	console.log(Date.now(), app.start, app.end, ' STARTED')
 
-// reset txrequest_time file
-if (fs.existsSync(PATH_REQEST_TIME))
-  fs.unlinkSync(PATH_REQEST_TIME)
- 
-const txs = fs.readFileSync(PATH_RAW_TX, 'utf-8').split('\n').slice(SlICE)
+// 	for (let i = 0; i < app.end; i++) {
+// 		time[i] = API.sendTx(config.tendermint.urls[i%NODE_NUM], raw_txs[app.start++])   // i%config.tendermint.urls.length
+// 	}
+// 	await Promise.all(time)
+// 	console.log(JSON.parse(time[1]))
+// 	console.log(Date.now(), app.start, app.end, ' FINISHED')
+// })()
 
-const a = () => {
-	let interval = setInterval(() => {
-		console.log(Date.now(), app.start, app.end, ' STARTED')
+//console.log(`Testing ${NODE_NUM}NODE,Rate ${INPUT_RATE}`)
+;(async function () {
+	console.log(Date.now() , ' STARTED')
+	var receipts = await Promise.all(raw_txs.map((txs, i) => {
+			if(i==raw_txs.length-1) console.log(Date.now(), ' END')
+			return API.sendTx(config.tendermint.urls[i % NODE_NUM], txs)
+		}))
 
-		for (let i = 0; i < INPUT_RATE; i++) {
-			API.sendTx(URL[0], txs[app.start++])
-			
-			// app.sent_log += `${txs[app.start++]}, ${Date.now()}\n`
+	var count=0
+	var time = []
+	for( let i =0 ; i < NODE_NUM ; i++) {
+		count=0
+		time = []
+		log = ''
+		for( let j =i ; j < raw_txs.length ; j+=NODE_NUM) {
+			if(j<raw_txs.length){
+				let res = JSON.parse(receipts[j])
+				time.push(res.result.time)
+				log += `${res.result.time}\n`
+				if(res.result.hash===raw_tx_hash[raw_txs[j]]) count++
+			}
 		}
-
-		// fs.appendFileSync(PATH_REQEST_TIME, app.sent_log)
-		app.sent_log = ''
-
-		console.log(Date.now(), app.start, app.end, ' FINISHED')
-
-		if (app.start >= app.end)
-			clearInterval(interval)
-	}, 1000)
-}
-
-app.start = 0
-app.end = INPUT_RATE * DURATION_TIME
-a()
-
-// line_reader.on('error', err => { throw(err) })
-// 
-// line_reader.pause()
-// line_reader.on('line', tx => {
-//   // app.sent_log += `${tx}, ${Date.now()}\n`
-//   // API.sendTx(URL[++app.sent_tx % URL.length], tx)
-// 
-//   app.txs.push([++app.sent_tx, tx])
-// 
-//   if (0 === app.sent_tx % INPUT_RATE) {
-//     line_reader.pause()
-//   }
-// })
-// 
-// const sendTxs = () => {
-//   if (app.sent_tx === app.max_txs_in_round) {
-//     return process.exit()
-//   }
-// 
-//   app.sent_log = ''
-//   app.reset_interval = false
-//   app.txs = []
-// 
-//   app.send_txs_interval = setInterval(() => {
-//     console.log('app.sent_tx: ', app.sent_tx, 'app.txs.length: ', app.txs.length, 'timestamp: ', Date.now())
-// 
-//     if (app.reset_interval && 0 === app.sent_tx % app.max_txs_in_period) {
-// 
-//       clearInterval(app.send_txs_interval)
-// 
-//       console.log(`clearInterval\nTrasaction Number ${app.sent_tx}`)
-// 
-//       fs.appendFileSync(PATH_REQEST_TIME, app.sent_log)
-//     }
-// 
-//     else {
-//       console.log(`send ${INPUT_RATE} txs`)
-// 
-//       app.reset_interval = true
-// 
-// 	  Promise.all(app.txs.map(it => {
-// 	  	return new Promise((resolve, reject) => {
-// 	  		API.sendTx(URL[it[0] % URL.length], it[1])
-// 	  
-// 	  		app.sent_log += `${it[1]}, ${Date.now()}\n`
-// 	  	})
-// 	  }))
-// 
-// 	  app.txs = []
-// 
-//       line_reader.resume()
-//     }
-//   }, 1000)
-// }
-// 
-// sendTxs()
-// 
-// setInterval(sendTxs, (DURATION_TIME + SLEEP_TIME) * 1000)
+		time.sort(function (a, b) {
+			return a - b
+		});
+		fs.appendFileSync(out_put_node[i], log)
+		//console.log(`Node ${i} Same:${count} ${time[0]},${time[time.length-1]}\nDurationTime: ${(parseInt(time[time.length-1])-parseInt(time[0]))/1000} `)
+	}
+	// for (let i in raw_txs) {
+	// 	let res = JSON.parse(receipts[i])
+	// 	time.push(res.result.time)
+	// 	if(res.result.hash===raw_tx_hash[raw_txs[i]]) count++
+	//   }
+	// console.log(`Same:${count}`)
+	// time.sort(function (a, b) {
+	// 	return a - b
+	// });
+	// console.log(time[0], time[time.length-1])
+})()
