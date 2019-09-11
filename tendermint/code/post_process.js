@@ -1,44 +1,45 @@
-const getTransactionReceipt = require(`../lib/rpc.js`).getTransactionReceipt
 const fs = require('fs')
-const config =  require('../../configure.json')
-const [INPUT_RATE, DURATION_TIME] = process.argv.slice(2, 4).map(it => parseInt(it))
-const transaction_log = fs.readFileSync(config.tendermint.path.transaction_log, 'utf-8').split('\n')
-const block_commit_time = fs.readFileSync(config.tendermint.path.block_commit_time, 'utf-8').split('\n').slice(0,-1)   // 28,50,1568105264997   => block_number,transaction_number,block_commit_time
+const getTransactionReceipt = require(`../lib/rpc.js`).getTransactionReceipt
+
+const config = require('../../configure.json')
+const [INPUT_RATE, DURATION_TIME, REPEAT] = process.argv.slice(2, 5).map(it => parseInt(it))
+
+const block_commit_time = fs.readFileSync(config.tendermint.path.block_commit_time, 'utf-8').split('\n').slice(0, -1)  // 28,50,1568105264997 => block_number,transaction_number,block_commit_time
+const transaction_log = require(config.tendermint.path.transaction_log)
+const txs = Object.keys(require(config.tendermint.path.raw_tx_hash))
 
 const app = {
-    total_txs : 0,
-    repeat_count : 1,
-    one_period : INPUT_RATE * DURATION_TIME,
-    obj : {},
-    output : {}
+  block_info: {},
+  repeat_count: 0,
+  txs_in_one_period: INPUT_RATE * DURATION_TIME
 }
 
-block_commit_time.map((it) => {
-    app.obj[`block_${it.split(',')[0]}`]={
-        "timeStamp" : it.split(',')[2],
-        "transactions" : []
-    }
-    app.total_txs+=parseInt(it.split(',')[1])
-})
+for (let block of block_commit_time) {
+  let [height, num_txs, timestamp] = it.split(',')
+
+  app.block_info[`block_${height}`] = {
+    num_txs: num_txs,
+    timestamp: parseInt(timestamp),
+    transactions: []
+  }
+}
 
 ;(async function () {
 
-    for (let i = 0 ; i < app.total_txs ; i++){
-        let tx_block_height = JSON.parse( await getTransactionReceipt(config.tendermint.urls[i%config.tendermint.urls.length], transaction_log[i].split(',')[0]) ).result.height
-        app.obj[`block_${tx_block_height}`].transactions.push(transaction_log[i]) 
-    } 
+  while (app.repeat_count < REPEAT) {
+    let rlt = {}
 
-    app.total_txs = 0
-    block_commit_time.map((it) => {
-        app.output[`block_${it.split(',')[0]}`]=app.obj[`block_${it.split(',')[0]}`]
-        app.total_txs+=parseInt(it.split(',')[1])
-        if(app.total_txs==app.one_period){
-            fs.writeFileSync(`${config.tendermint.path.post_process}/Rate${INPUT_RATE}-Sec${DURATION_TIME}-Test${app.repeat_count}.json`, JSON.stringify(app.output, null, '\t'))
-            app.output = {}
-            app.total_txs = 0
-            app.repeat_count += 1
-        }
-    })
+    for (let i = app.txs_in_one_period * app.repeat_count; i < app.txs_in_one_period * (app.repeat_count + 1); i++) {
+      let tx_block_height = JSON.parse(await getTransactionReceipt(config.tendermint.urls[0], txs[i])).result.height
+
+      if (undefined === rlt[`block_${tx_block_height}`]) {
+        rlt[`block_${tx_block_height}`] = JSON.parse(JSON.stringify(app.block_info[`block_${tx_block_height}`]))
+      }
+
+      rlt[`block_${tx_block_height}`].transactions.push(`${txs[i]},${transaction_log[txs[i]]}`)
+    }
+
+    fs.writeFileSync(`${config.tendermint.path.post_process}/Rate${INPUT_RATE}-Sec${DURATION_TIME}-Test${++app.repeat_count}.json`, JSON.stringify(rlt, null, 2))
+  }
 
 })()
-

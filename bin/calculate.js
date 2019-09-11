@@ -1,70 +1,31 @@
 const fs = require('fs')
-var stats = require("stats-lite")
+const stats = require("stats-lite") // TODO
+
 const CONSENSUS = process.argv[2]
 const [INPUT_RATE, DURATION_TIME, REPEAT] = process.argv.slice(3, 6).map(it => parseInt(it))
-const config =  require('../configure.json')
 
-const app = {
-    latency : [],
-    tps : []
-}
+const config = require('../configure.json')
 
-for(let i = 1 ; i < REPEAT+1 ; i ++){
+for (let i = 1; i <= REPEAT; i++) {
+  let latency = [], tps = []
 
-  let post_process =  require(`${config[CONSENSUS].path.post_process}/Rate${INPUT_RATE}-Sec${DURATION_TIME}-Test${REPEAT}.json`)
-  let block = Object.keys(post_process)
+  let post_process = require(`${config[CONSENSUS].path.post_process}/Rate${INPUT_RATE}-Sec${DURATION_TIME}-Test${i}.json`)
+  let block = Object.keys(post_process).sort() // TODO
 
-  for (let j = 1 ; j <　block.length-1 ; j ++){   // remove first & last block
-    let hash = Object.keys(post_process[block[j]].transactions)
-    app.tps.push( (hash.length/(parseFloat(post_process[block[j+1]].timeStamp)-parseFloat(post_process[block[j]].timeStamp)))*1000 )
-    for (let k = 0 ; k < hash.length ; k ++){
-      let txs_request = parseFloat(post_process[block[j]].transactions[k].split(',')[1])
-      app.latency.push( (parseFloat(post_process[block[j]].timeStamp)-txs_request)/1000 )
+  for (let j = 1, k = block.length - 1; j < k; j++) {
+    let txs = post_process[block[j]].transactions
+    let dtime = post_process[block[j]].timestamp - post_process[block[j - 1]].timestamp
+
+    tps.push(1000 * (txs.length / (dtime)))
+
+    for (let tx of txs) {
+      let [hash, tx_timestamp] = tx.split(',')
+
+      latency.push(post_process[block[j]].timestamp - tx_timestamp) // millisecond
     }
   }
 
   console.log(`Testing${i} Rate${INPUT_RATE} DurationTime${DURATION_TIME}`)
-  console.log(`Tps     , mean:${stats.mean(app.tps)}, var:${stats.variance(app.tps)}`)
-  console.log(`Latency , mean:${stats.mean(app.latency)}, var:${stats.variance(app.latency)}\n`)
-  app.latency = []
-  app.tps = []
+  console.log(`Tps     , mean:${stats.mean(tps)}, var:${stats.variance(tps)}`)
+  console.log(`Latency , mean:${stats.mean(latency)}, var:${stats.variance(latency)}\n`)
 }
-
-
-
-
-
-
-
-// let index = 0
-// let one_period_block_num = []
-// let one_period_block_commit_time = []
-// let tps = []
-// let latency = []
-// let testing_time = 0
-// let start_index = 0
-
-// for (let i = 0 ; i < block_tx_num.length ; i++ ){
-//   index += parseInt(block_tx_num[i] ,10)
-//   one_period_block_num.push(parseInt(block_tx_num[i],10))
-//   one_period_block_commit_time.push(parseInt(block_commit_time[i],10))
-//   if(index == app.max_txs_in_period){
-//     start_index = app.max_txs_in_period*testing_time + one_period_block_num[0]
-//     for (let j = 1 ; j < one_period_block_num.length-1 ; j++ ){
-//       tps.push(parseFloat(one_period_block_num[j])/(parseFloat(one_period_block_commit_time[j+1])-parseFloat(one_period_block_commit_time[j]))*1000 )
-//       for (let k = 0 ; k < one_period_block_num[j] ; k++){
-//         latency.push( (parseFloat(one_period_block_commit_time[j]) - parseFloat(tx_request_time[start_index++]))/1000 )
-//       }
-//     }
-//     console.log(`${testing_time} Round Testing`)
-//     console.log(one_period_block_num)
-//     console.log("TPS mean: %s", stats.mean(tps) , " variance:", stats.variance(tps))
-//     console.log("Latency mean: %s", stats.mean(latency) , " variance:", stats.variance(latency))
-//     index = 0
-//     testing_time ++
-//     latency = []
-//     tps = []
-//     one_period_block_num = []
-//     one_period_block_commit_time = []
-//   }
-// }
