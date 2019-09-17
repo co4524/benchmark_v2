@@ -1,16 +1,16 @@
 const fs = require('fs')
 const stats = require("stats-lite") 
 
-const CONSENSUS = process.argv[2]
-const [INPUT_RATE, DURATION_TIME, REPEAT, TEST_TIME] = process.argv.slice(3, 7).map(it => parseInt(it))
+const [BLOCK_SIZE,INPUT_RATE, DURATION_TIME] = process.argv.slice(2, 5).map(it => parseInt(it))
+const REPEAT = 1
+const TEST_TIME = 1
 const node_num = 4
 
-const config = require('../configure.json')
 
 for (let i = 1; i <= REPEAT; i++) {
   let latency = [], tps = []
 
-  let post_process = require(`${config[CONSENSUS].path.report}/report${TEST_TIME}.json`)
+  let post_process = require(`/home/caideyi/report/tendermint${BLOCK_SIZE}/R${INPUT_RATE}-T${DURATION_TIME}/rec_data/report${TEST_TIME}.json`)
   //let post_process = require(`${config[CONSENSUS].path.post_process}/${THREAD_NUM}THREAD-${config.tendermint.urls.length}NODE/Rate${INPUT_RATE}-Sec${DURATION_TIME}-Test${i}.json`)
   let block = Object.keys(post_process).map(it => {
     return parseInt(it.split('_')[1])

@@ -7,19 +7,17 @@ const getInfo = require(`../${CONSENSUS}/lib/rpc.js`).tendermintInfo
 const config = require('../configure.json')
 
 const txs = Object.keys(require(config[CONSENSUS].path.raw_tx_hash)).slice(SLICE) // SLICE for testing
-
+console.log("read done")
 const app = {
   log: {},
   max_txs_in_period: INPUT_RATE * DURATION_TIME,
   max_txs_in_round:  INPUT_RATE * DURATION_TIME * REPEAT,
   sent_txs: 0,
-  first_period : true ,
-  first_period_test : 0
 }
 
 const onePeriodTest = () => {
   let period = setInterval(() => {
-    console.log( "sendtx" , app.sent_txs)
+    console.log( "sendtx" , app.sent_txs , Date.now())
     for (let i = 0; i < INPUT_RATE; i++) {
       sendTx(config[CONSENSUS].urls[i % config[CONSENSUS].urls.length], txs[app.sent_txs++]).then(it => {
         it = JSON.parse(it)
@@ -47,15 +45,7 @@ function oneRoundTest(){
     console.log(app.sent_txs, app.max_txs_in_round , Date.now()/1000 )
     onePeriodTest()
 
-    if (app.first_period) {
-      console.log("first test")
-      app.first_period_test = 1
-      app.first_period = false
-      clearInterval(round)
-      oneRoundTest()
-    }
-
-  }, app.first_period_test * (DURATION_TIME + SLEEP_TIME) * 1000)
+  }, (DURATION_TIME + SLEEP_TIME) * 1000)
 
 }
 
@@ -75,7 +65,8 @@ async function forTest() {
 }
 
 ;(async function () {
-  await forTest()
+  //await forTest()
+  onePeriodTest()
   oneRoundTest()
 })()
 // for test , not necessary
