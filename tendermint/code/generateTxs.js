@@ -1,3 +1,4 @@
+const crypto = require('crypto')
 const sendTx = require('../lib/rpc.js').sendTx
 const ethTx = require('ethereumjs-tx')
 const fs = require('fs')
@@ -6,7 +7,7 @@ const config = require('../../configure.json')
 const DES_ADDRESS = '0x6666666666666666666666666666666666666666' // The address you want to send money
 
 const size = {
-  raw_txs: 1000000
+  raw_txs: 1600000
 }
 
 // reset output data
@@ -41,7 +42,7 @@ const priv_key = fs.readFileSync(config.tendermint.path.private_key, 'utf-8').sp
 
     // get transaction hash and output
 
-    raw_tx_hashes[raw_tx] = JSON.parse(await sendTx(config.tendermint.urls[size.raw_txs % config.tendermint.urls.length], raw_tx)).result.hash
+    raw_tx_hashes[raw_tx] = crypto.createHash('sha256').update(raw_tx).digest('hex').toUpperCase()
   }
 
   fs.writeFileSync(config.tendermint.path.raw_tx_hash, JSON.stringify(raw_tx_hashes))
