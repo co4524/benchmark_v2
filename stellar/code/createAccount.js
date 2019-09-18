@@ -1,0 +1,5 @@
+const StellarSdk = require('stellar-sdk')
+const config = require('../../configure.json')
+const keystore = require(config.stellar.path.keystore)
+console.log(keystore)
+const testAccount = require(config.stellar.path.testAccount)
