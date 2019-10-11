@@ -1,7 +1,5 @@
-const [INPUT_RATE, DURATION_TIME, REPEAT, SLEEP_TIME, SLICE, THREAD_NUM] = process.argv.slice(2, 8).map(it => parseInt(it))
-const fs = require('fs')
-const sendTx = require(`../lib/sdk.js`).sendTransaction
-const getInfo = require(`../lib/sdk.js`).stellarInfo
+const [INPUT_RATE, DURATION_TIME, REPEAT, SLEEP_TIME, SLICE] = process.argv.slice(2, 7).map(it => parseInt(it))
+const sendTx = require(`../lib/sdk.js`).genRawTx
 
 const config = require('../../configure.json')
 
@@ -14,11 +12,20 @@ const app = {
 
 const privKey = Object.values(require(config.stellar.path.testAccount)).slice(SLICE,SLICE+app.max_txs_in_round)
 
+
+const StellarSdk = require('stellar-sdk')
+var server = []
+StellarSdk.Network.use(new StellarSdk.Network("stellar"))
+for (let i = 0 ; i < config.stellar.urls.length ; i++){   // 2 for testing
+	server[i] = new StellarSdk.Server(config.stellar.urls[i], {allowHttp: true})
+}
+
+
 const onePeriodTest = () => {
   let period = setInterval(() => {
     console.log( "sendtx" , app.sent_txs , Date.now())
     for (let i = 0; i < INPUT_RATE; i++) {
-      sendTx(config.stellar.node_ip[i % 2], privKey[app.sent_txs++], config.stellar.destination.address[0])   // 2 is urls length, for testing
+      sendTx(server[i%config.stellar.urls.length], privKey[app.sent_txs++], config.stellar.destination.address[0])   // 2 is urls length, for testing
     }
 
     if (0 === app.sent_txs % app.max_txs_in_period) {
@@ -30,7 +37,7 @@ const onePeriodTest = () => {
 
 function oneRoundTest(){
 
-  let round = setInterval(() => {
+  let round = setInterval(async() => {
 
     if (app.sent_txs === app.max_txs_in_round) {
       console.log("clear")
@@ -43,21 +50,6 @@ function oneRoundTest(){
   }, (DURATION_TIME + SLEEP_TIME) * 1000)
 
 }
-
-// for test , not necessary
-// async function forTest() {
-//   let res = parseInt(JSON.parse(await getInfo()).result.sync_info.latest_block_height)
-//   return new Promise((resolve , reject) => {
-//     let interval = setInterval(async() => {
-//       let res2 = parseInt(JSON.parse(await getInfo(config[CONSENSUS].urls[0])).result.sync_info.latest_block_height)
-//       console.log(res,res2)
-//       if(res+1==res2) {
-//         clearInterval(interval)
-//         resolve()
-//       }
-//     }, 500)
-//   })
-// }
 
 ;(async function () {
   //await forTest()

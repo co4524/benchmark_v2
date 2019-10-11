@@ -42,16 +42,7 @@ async function createAccount( keypair , amount , operation_count , pub){
         
 }
 
-async function getBalance(pub){
-    server.loadAccount(pub).then(function(Account) {
-      console.log('Balances for account: ' + pub)
-      Account.balances.forEach(function(balance) {
-        console.log('Type:', balance.asset_type, ', Balance:', balance.balance)
-      });
-    });
-}
-
-async function genRawTx( from_privateKey , des_publicKey ){
+async function genRawTx(_server, from_privateKey, des_publicKey ){
   var transaction;
   var sourceKeys = StellarSdk.Keypair.fromSecret(from_privateKey);
   // First, check to make sure that the destination account exists.
@@ -59,9 +50,9 @@ async function genRawTx( from_privateKey , des_publicKey ){
   // the transaction fee when the transaction fails.
   return new Promise((resolve, reject) => {
 
-    server.loadAccount(sourceKeys.publicKey())
+    _server.loadAccount(sourceKeys.publicKey())
       .then(function(sourceAccount) {
-        console.log(typeof(sourceAccount))
+//        console.log(typeof(sourceAccount))
         // Start building the transaction.
         transaction = new StellarSdk.TransactionBuilder(sourceAccount , opts={fee:100})
           .addOperation(StellarSdk.Operation.payment({
@@ -78,15 +69,15 @@ async function genRawTx( from_privateKey , des_publicKey ){
           .build();
         // Sign the transaction to prove you are actually the person sending it.
         //transaction.tx._attributes.timeBounds._attributes.maxTime.low = 1569300000
-        console.log("seq_h",transaction.tx._attributes.seqNum.high)
+//        console.log("seq_h",transaction.tx._attributes.seqNum.high)
         transaction.sign(sourceKeys);
         // And finally, send it off to Stellar!
-        return transaction;
+        return _server.submitTransaction(encodeURIComponent(transaction.toEnvelope().toXDR().toString('base64')))
         //return server[index].submitTransaction(transaction);
       })
-      .then(function(transaction) {
-        //console.log('Success! Results:',result.ledger);
-        resolve( transaction );
+      .then(function(result) {
+        //console.log('Success! Results:')
+        resolve(result)
       })
       .catch(function(error) {
         console.error('Something went wrong!', error);
@@ -99,31 +90,26 @@ async function genRawTx( from_privateKey , des_publicKey ){
   })
 }
 
-async function sendTx( tx ){
-  return new Promise((resolve, reject) => { 
-    return server.submitTransaction(tx)
-    .then(function(result) {
-      console.log('Success! Results:',result);
-      resolve(result);
-    })
-    .catch(function(error) {
-      console.error('Something went wrong!', error);
-      resolve(error);
-      // If the result is unknown (no response body, timeout etc.) we simply resubmit
-      // already built transaction:
-      // server.submitTransaction(transaction);
-    });
-  })
+async function sendTx(tx){
+	return new Promise((resolve, reject) =>{
+		return server.submitTransaction(tx)
+			.then(function(result){
+				console.log('Suc',result)
+				resolve(result)
+			})
+			.catch(function(error){
+				console.error('something error',error)
+				resolve(error)
+			})
+	})
 }
-
 
 
 module.exports = {
     createAccount : createAccount,
-    getBalance : getBalance,
     genRawTx : genRawTx,
-    sendTx : sendTx,
-    stellarInfo : () => request(`${config.stellar.core_urls[0]}/info`),
+    getBalance : (address) => request(`${config.stellar.urls[0]}/accounts/${address}`),
+    stellarInfo : () => request(`http://${config.stellar.node_ip[0]}:11626/info`),
     sendTransaction: (ip,src,des) => { 
       return request({
         method: 'POST',
@@ -133,5 +119,9 @@ module.exports = {
           amount: 1,
           destination: des
         }
-    })}
+    })},
+    getLedgerInfo : (url, block_height) => request(`${url}/ledgers/${block_height}`),
+    getHorizonInfo : () => request(config.stellar.urls[0]),
+    getTransactionDetail : (hash) => request(`${config.stellar.urls[0]}/transactions/${hash}`),
+	sendTx : sendTx
 }
