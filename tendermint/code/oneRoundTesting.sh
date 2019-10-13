@@ -9,17 +9,17 @@ let SPLIT_TX_RATE=TX_RATE/THREAD_NUM
 let ONE_PERIOD=SPLIT_TX_RATE*DURATION_TIME
 NODE_NUM=4
 
-model=tendermint100
-block_size=20400
-
+model=tendermint
+block_size=22020096
+core_num=8core
 
 # reset network
 cd /home/caideyi/Benchmarking/t-tendermint/script
 ./command.sh active $NODE_NUM $NODE_NUM $model $block_size
 cd /home/caideyi/benchmark_v2/tendermint/code
-for ((i = 0 ; i < $NODE_NUM ;i++)){
-    gcloud compute --project "caideyi" ssh --zone "asia-east1-b" "tendermint0" -- 'rm /home/caideyi/Benchmarking/t-tendermint/data/block_commit_time'
-}
+#for ((i = 0 ; i < $NODE_NUM ;i++)){
+#    gcloud compute --project "caideyi" ssh --zone "asia-east1-b" "tendermint0" -- 'rm /home/caideyi/Benchmarking/t-tendermint/data/block_commit_time'
+#}
 sleep 5
 # multi thread workload
 echo "start Testing"
@@ -44,7 +44,7 @@ for ((i = 0 ; i < $NODE_NUM ;i++)){
     gcloud compute --project "caideyi" ssh --zone "asia-east1-b" "tendermint$i" -- "./Benchmarking/t-tendermint/nodeScript/scp.sh $i"
 }
 
-path=/home/caideyi/report/$model/R$TX_RATE-T$DURATION_TIME
+path=/home/caideyi/report/$core_num/R$TX_RATE-T$DURATION_TIME
 rm -r $path
 mkdir -p $path
 cp -r /home/caideyi/benchmark_v2/tendermint/rec_data $path

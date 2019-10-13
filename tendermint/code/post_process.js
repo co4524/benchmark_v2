@@ -17,7 +17,7 @@ const app = {
 fs.existsSync(`${config.tendermint.path.report}/report${TEST_TIME}.json`) && fs.unlinkSync(`${config.tendermint.path.report}/report${TEST_TIME}.json`)
 
 for (let i = 0 ; i < node_num ; i++){
-  const block_commit_time = fs.readFileSync(`${config.tendermint.path.block_commit_time}${i}/block_commit_time`, 'utf-8').split('\n').slice(0, -1)  // 28,50,1568105264997 => block_number,transaction_number,block_commit_time
+  const block_commit_time = fs.readFileSync(`${config.tendermint.path.block_commit_time}${i}/log`, 'utf-8').split('\n').slice(0, -1)  // 28,50,1568105264997 => block_number,transaction_number,block_commit_time
   for (let block of block_commit_time) {
     let obj ={}
     let [height, num_txs, timestamp] = block.split(',')

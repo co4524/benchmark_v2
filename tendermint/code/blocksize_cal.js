@@ -41,17 +41,18 @@ for (let i = 1; i <= REPEAT; i++) {
   // console.log(`Tps     , mean:${stats.mean(tps)}, var:${stats.variance(tps)}`)
   // console.log(`Latency , mean:${stats.mean(latency)} ms, var:${stats.variance(latency)}\n`)
   let log = `BlockSize${BLOCK_SIZE}\nTxRate,${INPUT_RATE}\nTPS,${stats.mean(tps)}\nLatency,${stats.mean(latency)}\nTPS_var,${stats.variance(tps)}\nLatency_var,${stats.variance(latency)}\n`
+  console.log(log)
   if(INPUT_RATE===100){
-    fs.existsSync(config.tendermint.path.graph) && fs.unlinkSync(config.tendermint.path.graph)
-    fs.writeFileSync(config.tendermint.path.graph,log)
+    fs.existsSync(`${config.tendermint.path.graph}B${BLOCK_SIZE}T${DURATION_TIME}.txt`) && fs.unlinkSync(`${config.tendermint.path.graph}B${BLOCK_SIZE}T${DURATION_TIME}.txt`)
+    fs.writeFileSync(`${config.tendermint.path.graph}B${BLOCK_SIZE}T${DURATION_TIME}.txt`,log)
   }
   else{
     let log2 = `BlockSize${BLOCK_SIZE}\n`
-    let arr = fs.readFileSync(config.tendermint.path.graph,"utf-8").split('\n').slice(0,-1)
+    let arr = fs.readFileSync(`${config.tendermint.path.graph}B${BLOCK_SIZE}T${DURATION_TIME}.txt`,"utf-8").split('\n').slice(0,-1)
     let arr2 = log.split('\n').slice(0,-1)
     for(let i = 1 ; i < arr.length ; i++){
       log2+=`${arr[i]},${arr2[i].split(',')[1]}\n`
     }
-    fs.writeFileSync(config.tendermint.path.graph,log2)
+    fs.writeFileSync(`${config.tendermint.path.graph}B${BLOCK_SIZE}T${DURATION_TIME}.txt`,log2)
   }
 }
