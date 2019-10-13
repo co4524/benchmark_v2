@@ -1,12 +1,10 @@
 array=(
 100
 200
+300
 400
-800
-1600
-3200
-6400
-12800
+500
+600
 )
 DURATION_TIME=60
 Benchmark() {
@@ -17,5 +15,5 @@ Benchmark() {
 }
 
 Benchmark
-DURATION_TIME=120
-Benchmark
+#DURATION_TIME=120
+#Benchmark

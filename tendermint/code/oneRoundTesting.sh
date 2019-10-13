@@ -10,8 +10,8 @@ let ONE_PERIOD=SPLIT_TX_RATE*DURATION_TIME
 NODE_NUM=4
 
 model=tendermint
-block_size=22020096
-core_num=8core
+block_size=1356800
+core_num=1core-Normal
 
 # reset network
 cd /home/caideyi/Benchmarking/t-tendermint/script
