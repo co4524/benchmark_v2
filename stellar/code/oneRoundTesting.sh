@@ -2,6 +2,7 @@ nodeNumber=4
 threadNumber=4
 inputRate=$1
 durationTime=$2
+block_size=$3
 repeatTime=1
 sleepTime=30
 testingTime=1
@@ -10,7 +11,7 @@ let one_period=inputRate*durationTime
 # reset stellarNetwork
 cd /home/caideyi/Benchmarking/t-stellar/script/
 ./killprocess.sh $nodeNumber
-./active.sh $nodeNumber $nodeNumber
+./active.sh $nodeNumber $nodeNumber $block_size
 
 # create testing account
 cd /home/caideyi/benchmark_v2/stellar/code/
