@@ -7,7 +7,7 @@ const testing_time = 1
 
 const app = {
     log: {},
-    node_num: 2, // config.stellar.url2.length
+    node_num: config.stellar.urls.length, // config.stellar.url2.length
     report: {},
     max_txs_in_period: INPUT_RATE * DURATION_TIME,
     max_txs_in_round:  INPUT_RATE * DURATION_TIME * REPEAT,
