@@ -7,6 +7,7 @@ node ../../modconfig.js
 
 DURATION_TIME=$(cat $PATH_CONFIGURE | jq -r '.setting.duration_time')
 REPEAT=1
+SLEEP_TIME=60
 SLICE=0
 THREAD_NUM=4
 TEST_TIME=1
@@ -20,6 +21,7 @@ MODEL=$(cat $PATH_CONFIGURE | jq -r '.setting.model')
 region_setting=$(cat $PATH_CONFIGURE | jq -r '.setting.region')
 region_list=$(cat $PATH_CONFIGURE | jq -r '.region' | jq 'keys')
 region_num=$(cat $PATH_CONFIGURE | jq -r '.region' | jq 'length')
+
 
 # reset network
 cd /home/caideyi/Benchmarking/t-tendermint/script
