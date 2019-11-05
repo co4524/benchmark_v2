@@ -5,7 +5,8 @@ from matplotlib import pyplot as plt
 import csv,sys
 
 plot_name=sys.argv[1]
-model_list=sys.argv[2:]
+model_list=sys.argv[3:]
+result_path=sys.argv[2]
 
 all_test_data = []
 title = []
@@ -40,22 +41,24 @@ for i in range(len(model_list)):
     plt.errorbar(txrate[i],tps[i],marker='o',markersize=3,yerr=tpserr[i],capsize=5,label=title[i])
 plt.xlabel("InputTxRate(txs/s)")
 plt.ylabel("Throughput(txs/s)")
-plt.xlim(0,13000)
-plt.ylim(0,12000)
+plt.xlim(0,1300)
+plt.ylim(0,600)
 plt.title("InputTxRate/Throughput")
 #plt.legend(bbox_to_anchor=(0.9, -0.04),ncol=2)
 plt.legend(loc="upper left")
 plt.savefig('{0}_Tps.png'.format(plot_name))
+plt.savefig('{1}/{0}_Tps.png'.format(plot_name, result_path))
 
 plt.figure(figsize=(12,7))
 for i in range(len(model_list)):
     plt.errorbar(txrate[i],lantency[i],marker='o',markersize=3,yerr=latencyerr[i]/1000,capsize=5,label=title[i])
 plt.xlabel("InputTxRate(txs/s)")
 plt.ylabel("Latency(s)")
-plt.xlim(0,13000)
-plt.ylim(0,40)
-plt.yticks(np.arange(0,40,4))
+plt.xlim(0,1300)
+plt.ylim(0,150)
+plt.yticks(np.arange(0,150,10))
 plt.title("InputTxRate/Latency")
 #plt.legend(bbox_to_anchor=(0.9, -0.04),ncol=2)
 plt.legend(loc="upper left")
 plt.savefig('{0}_Latency.png'.format(plot_name))
+plt.savefig('{1}/{0}_Latency.png'.format(plot_name, result_path))

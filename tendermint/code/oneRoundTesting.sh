@@ -33,7 +33,7 @@ cd /home/caideyi/benchmark_v2/tendermint/code
 echo -e "===Experiment Settings===\n"
 echo -e "MODEL : $MODEL\nNODE_NUMBER : $NODE_NUM\nREGION : $region_setting $region_list"
 echo  "============================"
-sleep 5
+sleep 10
 # multi thread workload
 echo -e "start Testing\nINPUTRATE : $TX_RATE\nDURATION_TIME : $DURATION_TIME"
 for ((i = 1 ; i < $THREAD_NUM ; i++)){
@@ -63,12 +63,16 @@ node ../../bin/calculate.js "tendermint" $TX_RATE $DURATION_TIME $REPEAT $TEST_T
 # transfer micro performance data
 cd /home/caideyi/Benchmarking/t-tendermint/script
 ./command.sh kill $NODE_NUM
+
+sleep 120
+
 for ((i = 0 ; i < $NODE_NUM ;i++)){
 	let region_index=i%$region_num
 	region=$(echo $region_list | jq -r .[$region_index])
 	echo "transfer micro data from tendermint$i region $region"
-	gcloud compute --project "caideyi" ssh --zone "$region" "tendermint$i" -- "./Benchmarking/t-tendermint/nodeScript/scp.sh $i"
+	gcloud compute --project "caideyi" ssh --zone "$region" "tendermint$i" -- "./Benchmarking/t-tendermint/nodeScript/scp.sh $i" &
 }
+sleep 120
 
 path=/home/caideyi/report/$MODEL/R$TX_RATE-T$DURATION_TIME  
 rm -r $path

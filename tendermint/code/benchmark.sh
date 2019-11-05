@@ -13,10 +13,11 @@ array=(
 1200
 )
 
+DURATION_TIME=60
 Benchmark() {
 	for i in "${array[@]}"
 	do
-		./oneRoundTesting.sh $i
+		./oneRoundTesting.sh $i 
 	done
 }
 
