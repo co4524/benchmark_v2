@@ -10,7 +10,7 @@ const TEST_TIME = 1
 for (let i = 1; i <= REPEAT; i++) {
   let latency = [], tps = []
 
-  let post_process = require(`/home/caideyi/report/${MODEL}/R${INPUT_RATE}-T${DURATION_TIME}/rec_data/report${TEST_TIME}.json`)
+  let post_process = require(`${config.tendermint.path.result}/${MODEL}/R${INPUT_RATE}-T${DURATION_TIME}/rec_data/report${TEST_TIME}.json`)
   //let post_process = require(`${config[CONSENSUS].path.post_process}/${THREAD_NUM}THREAD-${config.tendermint.urls.length}NODE/Rate${INPUT_RATE}-Sec${DURATION_TIME}-Test${i}.json`)
   let block = Object.keys(post_process).map(it => {
     return parseInt(it.split('_')[1])

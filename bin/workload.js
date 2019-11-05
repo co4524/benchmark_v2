@@ -6,7 +6,7 @@ const getInfo = require(`../${CONSENSUS}/lib/rpc.js`).tendermintInfo
 
 const config = require('../configure.json')
 
-const txs = Object.keys(require(config[CONSENSUS].path.raw_tx_hash)).slice(SLICE) // SLICE for testing
+const txs = Object.keys(require(config[CONSENSUS].path.raw_tx_hash)).slice(SLICE) // SLICE for thread
 console.log("read done")
 const app = {
   log: {},

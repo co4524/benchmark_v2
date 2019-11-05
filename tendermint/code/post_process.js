@@ -6,7 +6,7 @@ const config = require('../../configure.json')
 const [INPUT_RATE, DURATION_TIME, REPEAT, SLICE, TEST_TIME] = process.argv.slice(2, 7).map(it => parseInt(it))    //test version
 const transaction_log = require(config.tendermint.path.transaction_log)
 const txs = Object.values(require(config.tendermint.path.raw_tx_hash)).slice(SLICE)   //SLICE for test
-const node_num = 4
+const node_num = config.tendermint.urls.length
 
 const app = {
   block_info: {},
