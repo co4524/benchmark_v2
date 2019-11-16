@@ -7,6 +7,7 @@ repeat=1
 thread_num=1
 test_time=1
 
+process_sleep=120
 path_testnet=$(cat $path_configure | jq -r '.quorum.path.node_config')
 path_rec=$(cat $path_configure | jq -r '.quorum.path.rec_data')
 path_log=$(cat $path_configure | jq -r '.node.log')
@@ -44,9 +45,10 @@ do
     echo "transfer config data to instance : $instance_name$node_index region $region"
     gcloud compute scp --project "$gcloud_proj_name" --recurse "$path_testnet/node$node_index/data" "$instance_name$node_index":~/. --zone "$region"
     gcloud compute --project "$gcloud_proj_name" ssh --zone "$region" "$instance_name$node_index" \
-    --command="sh startQuorum.sh data 22000 20200 30300 $block_time" &   # [data_path, web_socket port, rpc port, node_port, block_time]
+    --command="sh startQuorum.sh data 22000 20200 30300 $block_time" &   # [da ta_path, web_socket port, rpc port, node_port, block_time]
 done
-sleep 120
+echo "sleep $process_sleep"
+sleep $process_sleep
 
 ## send transactions & monitor result
 # 1.workload send transaction multi thread
@@ -73,8 +75,10 @@ do
     region_index=`expr $node_index % $region_num`
     region=$(echo $region_list | jq -r .[$region_index])
     gcloud compute --project "$gcloud_proj_name" ssh --zone "$region" "$instance_name$node_index" \
-    --command="gcloud compute scp --recurse $path_log $dispatcher_name:$path_rec/node$node_index --zone asia-east1-b"
+    --command="gcloud compute scp --recurse $path_log $dispatcher_name:$path_rec/node$node_index --zone asia-east1-b" &
 done
+echo "sleep $process_sleep"
+sleep $process_sleep
 
 # 2.post_process
 node ../postprocess.js
@@ -87,8 +91,10 @@ do
     region_index=`expr $node_index % $region_num`
     region=$(echo $region_list | jq -r .[$region_index])
     gcloud compute --project "$gcloud_proj_name" ssh --zone "$region" "$instance_name$node_index" \
-    --command="sh killQuorum.sh; gcloud compute scp --project $gcloud_proj_name --recurse $path_micro_data $dispatcher_name:$path_rec/node$node_index --zone asia-east1-b"
+    --command="sh killQuorum.sh; gcloud compute scp --project $gcloud_proj_name --recurse $path_micro_data $dispatcher_name:$path_rec/node$node_index --zone asia-east1-b" &
 done
+echo "sleep $process_sleep"
+sleep $process_sleep[]
 
 ## copy report to report dir
 

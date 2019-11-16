@@ -33,7 +33,7 @@ DURATION_TIME=$(cat $path_configure | jq -r '.setting.duration_time')
 node_num=$(cat $path_configure | jq -r '.setting.node_num')
 model=$(cat $path_configure | jq -r '.setting.model')
 start=$(cat $path_configure | jq -r '.setting.micro_graph.start')
-end=$(cat $path_configure | jq -r '.setting.micro_graph.end')
+end=$(cat $path_configure | jq -r '.setting.micro_graph.end')  # 0 for default setting 0~end
 ref_node=$(cat $path_configure | jq -r '.setting.micro_graph.ref_node')
 report_path=$(cat $path_configure | jq -r ".$consensus.path.result")
 model_list=$(cat $path_configure | jq -r '.setting.model_list')
@@ -73,19 +73,23 @@ fi
 
 # get minxium time bound
 getMaxTimeBound(){
-    init=true
-    for micro_data in CpuMonitor IoMonitor ProcessMonitor WebMonitor
-    do
-        if [ "$init" = true ]; then
-            max=$(cat $1/$2/R$3-T$4/rec_data/$5/$micro_data | wc -l)
-            init=false
-        else
-            value=$(cat $1/$2/R$3-T$4/rec_data/$5/$micro_data | wc -l)
-            if [ $max -gt $value ]; then
-            max=$value
+    if [ "$end" = "0" ]; then
+        init=true
+        for micro_data in CpuMonitor IoMonitor ProcessMonitor WebMonitor
+        do
+            if [ "$init" = true ]; then
+                max=$(cat $1/$2/R$3-T$4/rec_data/$5/$micro_data | wc -l)
+                init=false
+            else
+                value=$(cat $1/$2/R$3-T$4/rec_data/$5/$micro_data | wc -l)
+                if [ $max -gt $value ]; then
+                max=$value
+                fi
             fi
-        fi
-    done
+        done
+    else
+        max=$end
+    fi
     echo $max
 }
 

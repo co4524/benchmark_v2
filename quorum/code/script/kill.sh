@@ -29,13 +29,18 @@ iter=`expr $node_num - 1`
 for node_index in $(seq 0 $iter)
 do
     echo "transfer micro_data from $instance_name$node_index to $dispatcher_name"
+    node_path=$path_rec/node$node_index
+	if [ ! -d "$node_path" ]; then
+		mkdir -p $node_path
+	fi
     region_index=`expr $node_index % $region_num`
     region=$(echo $region_list | jq -r .[$region_index])
     gcloud compute --project "$gcloud_proj_name" ssh --zone "$region" "$instance_name$node_index" \
-    --command="sh killQuorum.sh; gcloud compute scp --project $gcloud_proj_name --recurse $path_micro_data $dispatcher_name:$path_rec/node$node_index --zone asia-east1-b"
+    --command="sh killQuorum.sh; gcloud compute scp --project $gcloud_proj_name --recurse $path_micro_data $dispatcher_name:$path_rec/node$node_index --zone asia-east1-b" &
 done
+sleep 120
 
-path=$path_report/$model/FAIL
+path=$path_report/$model/fail
 if [ -d "$path" ]; then
     rm -r $path
 fi
