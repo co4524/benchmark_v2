@@ -7,8 +7,7 @@ Benchmark() {
 	for index in $(seq 0 $iter)
     do
         tx_rate=$(echo $transaction_rate | jq -r ".[$index]")
-		echo $tx_rate
-        sh oneRoundTest.sh $i 
+        sh oneRoundTest.sh $tx_rate 
 	done
 }
 

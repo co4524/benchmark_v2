@@ -56,3 +56,5 @@ do
   /bin/cp -i $NODES_PATH/node$LEADER_NODE_ID/$nid/nodekey ./data/geth;
 
 done
+
+rm -r config

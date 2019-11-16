@@ -10,6 +10,7 @@ test_time=1
 path_testnet=$(cat $path_configure | jq -r '.quorum.path.node_config')
 path_rec=$(cat $path_configure | jq -r '.quorum.path.rec_data')
 path_log=$(cat $path_configure | jq -r '.node.log')
+path_report=$(cat $path_configure | jq -r '.quorum.path.report_path')
 path_micro_data=$(cat $path_configure | jq -r '.node.micro_data')
 duration_time=$(cat $path_configure | jq -r '.setting.duration_time')
 sleep_time=$(cat $path_configure | jq -r '.setting.sleep_time')
@@ -45,7 +46,7 @@ do
     gcloud compute --project "$gcloud_proj_name" ssh --zone "$region" "$instance_name$node_index" \
     --command="sh startQuorum.sh data 22000 20200 30300 $block_time" &   # [data_path, web_socket port, rpc port, node_port, block_time]
 done
-sleep 30
+sleep 120
 
 ## send transactions & monitor result
 # 1.workload send transaction multi thread
@@ -78,8 +79,6 @@ done
 # 2.post_process
 node ../postprocess.js
 
-## calculate performance
-
 ## kill nodes & get micro data
 
 for node_index in $(seq 0 $iter)
@@ -90,3 +89,16 @@ do
     gcloud compute --project "$gcloud_proj_name" ssh --zone "$region" "$instance_name$node_index" \
     --command="sh killQuorum.sh; gcloud compute scp --project $gcloud_proj_name --recurse $path_micro_data $dispatcher_name:$path_rec/node$node_index --zone asia-east1-b"
 done
+
+## copy report to report dir
+
+path=$path_report/$model/R$tx_rate-T$duration_time
+if [ -d "$path" ]; then
+    rm -r $path
+fi
+mkdir -p $path
+cp -r $path_rec $path
+
+## calculate performance && draw graph
+cd ../../../bin/
+sh drawGraph.sh $tx_rate

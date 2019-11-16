@@ -3,3 +3,5 @@ node_modules/
 res/
 data/
 rec_data/
+config/
+graph/
