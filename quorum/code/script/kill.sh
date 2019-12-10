@@ -7,10 +7,11 @@ repeat=1
 thread_num=1
 test_time=1
 
-path_testnet=$(cat $path_configure | jq -r '.quorum.path.node_config')
-path_rec=$(cat $path_configure | jq -r '.quorum.path.rec_data')
+consensus=$(cat $path_configure | jq -r '.setting.consensus')
+path_testnet=$(cat $path_configure | jq -r ".$consensus.path.node_config")
+path_rec=$(cat $path_configure | jq -r ".$consensus.path.rec_data")
 path_log=$(cat $path_configure | jq -r '.node.log')
-path_report=$(cat $path_configure | jq -r '.quorum.path.report_path')
+path_report=$(cat $path_configure | jq -r ".$consensus.path.report_path")
 path_micro_data=$(cat $path_configure | jq -r '.node.micro_data')
 duration_time=$(cat $path_configure | jq -r '.setting.duration_time')
 sleep_time=$(cat $path_configure | jq -r '.setting.sleep_time')
@@ -35,8 +36,17 @@ do
 	fi
     region_index=`expr $node_index % $region_num`
     region=$(echo $region_list | jq -r .[$region_index])
-    gcloud compute --project "$gcloud_proj_name" ssh --zone "$region" "$instance_name$node_index" \
-    --command="sh killQuorum.sh; gcloud compute scp --project $gcloud_proj_name --recurse $path_micro_data $dispatcher_name:$path_rec/node$node_index --zone asia-east1-b" &
+    if [ "$consensus" = "raft" ]; then
+        gcloud compute --project "$gcloud_proj_name" ssh --zone "$region" "$instance_name$node_index" \
+        --command="gcloud compute scp --recurse $path_log $dispatcher_name:$path_rec/node$node_index --zone asia-east1-b" 
+        gcloud compute --project "$gcloud_proj_name" ssh --zone "$region" "$instance_name$node_index" \
+        --command="sh killRaft.sh; gcloud compute scp --project $gcloud_proj_name --recurse $path_micro_data $dispatcher_name:$path_rec/node$node_index --zone asia-east1-b" &
+    else
+        gcloud compute --project "$gcloud_proj_name" ssh --zone "$region" "$instance_name$node_index" \
+        --command="gcloud compute scp --recurse $path_log $dispatcher_name:$path_rec/node$node_index --zone asia-east1-b" 
+        gcloud compute --project "$gcloud_proj_name" ssh --zone "$region" "$instance_name$node_index" \
+        --command="sh killQuorum.sh; gcloud compute scp --project $gcloud_proj_name --recurse $path_micro_data $dispatcher_name:$path_rec/node$node_index --zone asia-east1-b" &
+    fi
 done
 sleep 120
 
@@ -46,3 +56,4 @@ if [ -d "$path" ]; then
 fi
 mkdir -p $path
 cp -r $path_rec $path
+mv process_log $path

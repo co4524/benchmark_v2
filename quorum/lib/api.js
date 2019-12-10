@@ -1,4 +1,3 @@
-
 module.exports = {
 
     getTransactionReceipt: (web3, tx_hash) => web3.eth.getTransaction(tx_hash),
@@ -9,6 +8,6 @@ module.exports = {
 
     getBlock: (web3, block_num) => web3.eth.getBlock(block_num),
 
-    getBalance: (web3, address) => web3.eth.getBalance(address)
+    getBalance: (web3, address) => web3.eth.getBalance(address),
 
 }

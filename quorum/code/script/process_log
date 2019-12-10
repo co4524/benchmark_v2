@@ -1,0 +1,134 @@
+validators
+{
+	"Address": "0xbec3e8abccded6c584db0f37468b7cb3e50881cb",
+	"Nodekey": "01d62fc5459df24c4fab75ef7c78831e8ba9ba17181a5210ce1bcd9416c9e5a0",
+	"NodeInfo": "enode://1e59706c76e54c882d96b23621c087b08a3c3ad7a4ab4e04bc9533b042c1d21c3732a27c79ddd8b76c0696c373c7eb7881275ff7c375b28aca1c64f92f3ba112@0.0.0.0:30303?discport=0"
+}
+{
+	"Address": "0x2e8b7e73d1ad945ce44165885d7a27a9d7bbf917",
+	"Nodekey": "ebde35e625af55578a14631f297f1d71ed499fbe380b03bef5d3ffc17fd27cad",
+	"NodeInfo": "enode://6a9fbe5b8791b936fe82f36c0bbac0fc017dd724905b6b2b7fa53f2594cc08ac3beb85b0c434abce9d13c10bc6dbbec57666f9c31ce4485ef83324d88b8bda48@0.0.0.0:30303?discport=0"
+}
+{
+	"Address": "0x1a4a5638cbc8619b73a903106f0cbdba44392e19",
+	"Nodekey": "92103a64e7bd95b7def565dbac37f89575806bdd92f87279e114a7771106b51d",
+	"NodeInfo": "enode://e55053db8f4a68e53ad30d710b9d3011471c676f164e021008d4f6cdcfb10452af813d3893e253687542c951c7431bbd0a78dbe8bed13aead186b528149a062a@0.0.0.0:30303?discport=0"
+}
+{
+	"Address": "0x957f2f3d12c2ddb96ee21445a2bfbe41103d2681",
+	"Nodekey": "6efa79e86d10dc30709d085ff4f1d0085fd146e38d2b6e901dbbbc675a00939c",
+	"NodeInfo": "enode://4cd1aa920ea87387605d3fba2792b73cbc53f0945c1d4f5a4a4ae65ca2430c9d1957d3c066d92954be3517dba85e00279eff1117e178d0fcdac09d283617b8f7@0.0.0.0:30303?discport=0"
+}
+
+
+
+static-nodes.json
+[
+	"enode://1e59706c76e54c882d96b23621c087b08a3c3ad7a4ab4e04bc9533b042c1d21c3732a27c79ddd8b76c0696c373c7eb7881275ff7c375b28aca1c64f92f3ba112@0.0.0.0:30303?discport=0",
+	"enode://6a9fbe5b8791b936fe82f36c0bbac0fc017dd724905b6b2b7fa53f2594cc08ac3beb85b0c434abce9d13c10bc6dbbec57666f9c31ce4485ef83324d88b8bda48@0.0.0.0:30303?discport=0",
+	"enode://e55053db8f4a68e53ad30d710b9d3011471c676f164e021008d4f6cdcfb10452af813d3893e253687542c951c7431bbd0a78dbe8bed13aead186b528149a062a@0.0.0.0:30303?discport=0",
+	"enode://4cd1aa920ea87387605d3fba2792b73cbc53f0945c1d4f5a4a4ae65ca2430c9d1957d3c066d92954be3517dba85e00279eff1117e178d0fcdac09d283617b8f7@0.0.0.0:30303?discport=0"
+]
+
+
+
+genesis.json
+{
+    "config": {
+        "chainId": 10,
+        "homesteadBlock": 0,
+        "eip150Block": 0,
+        "eip150Hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "eip155Block": 0,
+        "eip158Block": 0,
+        "byzantiumBlock": 0,
+        "constantinopleBlock": 0,
+        "istanbul": {
+            "epoch": 30000,
+            "policy": 0
+        },
+        "txnSizeLimit": 64,
+        "isQuorum": true
+    },
+    "nonce": "0x0",
+    "timestamp": "0x5de62243",
+    "extraData": "0x0000000000000000000000000000000000000000000000000000000000000000f89af85494bec3e8abccded6c584db0f37468b7cb3e50881cb942e8b7e73d1ad945ce44165885d7a27a9d7bbf917941a4a5638cbc8619b73a903106f0cbdba44392e1994957f2f3d12c2ddb96ee21445a2bfbe41103d2681b8410000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c0",
+    "gasLimit": "0xe0000000",
+    "difficulty": "0x1",
+    "mixHash": "0x63746963616c2062797a616e74696e65206661756c7420746f6c6572616e6365",
+    "coinbase": "0x0000000000000000000000000000000000000000",
+    "alloc": {
+        "1a4a5638cbc8619b73a903106f0cbdba44392e19": {
+            "balance": "0x446c3b15f9926687d2c40534fdb564000000000000"
+        },
+        "2e8b7e73d1ad945ce44165885d7a27a9d7bbf917": {
+            "balance": "0x446c3b15f9926687d2c40534fdb564000000000000"
+        },
+        "957f2f3d12c2ddb96ee21445a2bfbe41103d2681": {
+            "balance": "0x446c3b15f9926687d2c40534fdb564000000000000"
+        },
+        "bec3e8abccded6c584db0f37468b7cb3e50881cb": {
+            "balance": "0x446c3b15f9926687d2c40534fdb564000000000000"
+        }
+    },
+    "number": "0x0",
+    "gasUsed": "0x0",
+    "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000"
+}
+transfer config data to instance : quorum0 region asia-east1-b
+transfer config data to instance : quorum1 region asia-east1-b
+genesis block init
+transfer config data to instance : quorum2 region asia-east1-b
+INFO [12-03|08:52:24.836] Maximum peer count                       ETH=25 LES=0 total=25
+INFO [12-03|08:52:24.836] Allocated cache and file handles         database=/home/caideyi/data/geth/chaindata cache=16 handles=16
+INFO [12-03|08:52:24.870] Writing custom genesis block 
+genesis block init
+transfer config data to instance : quorum3 region asia-east1-b
+INFO [12-03|08:52:26.587] Maximum peer count                       ETH=25 LES=0 total=25
+INFO [12-03|08:52:26.588] Allocated cache and file handles         database=/home/caideyi/data/geth/chaindata cache=16 handles=16
+INFO [12-03|08:52:26.599] Writing custom genesis block 
+genesis block init
+sleep 60
+INFO [12-03|08:52:28.047] Maximum peer count                       ETH=25 LES=0 total=25
+INFO [12-03|08:52:28.048] Allocated cache and file handles         database=/home/caideyi/data/geth/chaindata cache=16 handles=16
+INFO [12-03|08:52:28.058] Writing custom genesis block 
+genesis block init
+INFO [12-03|08:52:30.155] Maximum peer count                       ETH=25 LES=0 total=25
+INFO [12-03|08:52:30.156] Allocated cache and file handles         database=/home/caideyi/data/geth/chaindata cache=16 handles=16
+INFO [12-03|08:52:30.171] Writing custom genesis block 
+INFO [12-03|08:52:30.820] Persisted trie from memory database      nodes=166843 size=25.61mB time=1.355561435s gcnodes=0 gcsize=0.00B gctime=0s livenodes=1 livesize=0.00B
+INFO [12-03|08:52:30.820] Successfully wrote genesis state         database=chaindata                         hash=555e8a…bf6071
+INFO [12-03|08:52:30.820] Allocated cache and file handles         database=/home/caideyi/data/geth/lightchaindata cache=16 handles=16
+INFO [12-03|08:52:30.832] Writing custom genesis block 
+INFO [12-03|08:52:33.049] Persisted trie from memory database      nodes=166843 size=25.61mB time=1.457863123s gcnodes=0 gcsize=0.00B gctime=0s livenodes=1 livesize=0.00B
+INFO [12-03|08:52:33.049] Successfully wrote genesis state         database=chaindata                         hash=555e8a…bf6071
+INFO [12-03|08:52:33.049] Allocated cache and file handles         database=/home/caideyi/data/geth/lightchaindata cache=16 handles=16
+INFO [12-03|08:52:33.062] Writing custom genesis block 
+INFO [12-03|08:52:33.366] Persisted trie from memory database      nodes=166843 size=25.61mB time=1.121955067s gcnodes=0 gcsize=0.00B gctime=0s livenodes=1 livesize=0.00B
+INFO [12-03|08:52:33.367] Successfully wrote genesis state         database=chaindata                         hash=555e8a…bf6071
+INFO [12-03|08:52:33.367] Allocated cache and file handles         database=/home/caideyi/data/geth/lightchaindata cache=16 handles=16
+INFO [12-03|08:52:33.377] Writing custom genesis block 
+INFO [12-03|08:52:36.757] Persisted trie from memory database      nodes=166843 size=25.61mB time=1.354703674s gcnodes=0 gcsize=0.00B gctime=0s livenodes=1 livesize=0.00B
+INFO [12-03|08:52:36.758] Successfully wrote genesis state         database=lightchaindata                         hash=555e8a…bf6071
+start the node
+rm: cannot remove 'log': No such file or directory
+INFO [12-03|08:52:37.812] Persisted trie from memory database      nodes=166843 size=25.61mB time=1.799018746s gcnodes=0 gcsize=0.00B gctime=0s livenodes=1 livesize=0.00B
+INFO [12-03|08:52:37.812] Successfully wrote genesis state         database=chaindata                         hash=555e8a…bf6071
+INFO [12-03|08:52:37.812] Allocated cache and file handles         database=/home/caideyi/data/geth/lightchaindata cache=16 handles=16
+INFO [12-03|08:52:37.832] Writing custom genesis block 
+INFO [12-03|08:52:38.484] Persisted trie from memory database      nodes=166843 size=25.61mB time=1.116535431s gcnodes=0 gcsize=0.00B gctime=0s livenodes=1 livesize=0.00B
+INFO [12-03|08:52:38.485] Successfully wrote genesis state         database=lightchaindata                         hash=555e8a…bf6071
+start the node
+rm: cannot remove 'log': No such file or directory
+INFO [12-03|08:52:39.593] Persisted trie from memory database      nodes=166843 size=25.61mB time=1.593560599s gcnodes=0 gcsize=0.00B gctime=0s livenodes=1 livesize=0.00B
+INFO [12-03|08:52:39.594] Successfully wrote genesis state         database=lightchaindata                         hash=555e8a…bf6071
+start the node
+rm: cannot remove 'log': No such file or directory
+monitor PID 5630
+monitor PID 5738
+monitor PID 5643
+INFO [12-03|08:52:45.321] Persisted trie from memory database      nodes=166843 size=25.61mB time=1.802001191s gcnodes=0 gcsize=0.00B gctime=0s livenodes=1 livesize=0.00B
+INFO [12-03|08:52:45.321] Successfully wrote genesis state         database=lightchaindata                         hash=555e8a…bf6071
+start the node
+rm: cannot remove 'log': No such file or directory
+monitor PID 5793

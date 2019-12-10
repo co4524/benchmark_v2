@@ -7,11 +7,12 @@ repeat=1
 thread_num=1
 test_time=1
 
-process_sleep=120
-path_testnet=$(cat $path_configure | jq -r '.quorum.path.node_config')
-path_rec=$(cat $path_configure | jq -r '.quorum.path.rec_data')
+process_sleep=$(cat $path_configure | jq -r '.setting.process_sleep')
+consensus=$(cat $path_configure | jq -r '.setting.consensus')
+path_testnet=$(cat $path_configure | jq -r ".$consensus.path.node_config")
+path_rec=$(cat $path_configure | jq -r ".$consensus.path.rec_data")
 path_log=$(cat $path_configure | jq -r '.node.log')
-path_report=$(cat $path_configure | jq -r '.quorum.path.report_path')
+path_report=$(cat $path_configure | jq -r ".$consensus.path.report_path")
 path_micro_data=$(cat $path_configure | jq -r '.node.micro_data')
 duration_time=$(cat $path_configure | jq -r '.setting.duration_time')
 sleep_time=$(cat $path_configure | jq -r '.setting.sleep_time')
@@ -25,6 +26,12 @@ region_list=$(cat $path_configure | jq -r '.region' | jq 'keys')
 region_num=$(cat $path_configure | jq -r '.region' | jq 'length')
 block_time=$(cat $path_configure | jq -r '.setting.block_time')
 
+# port
+web_socket=$(cat $path_configure | jq -r '.setting.port.web_socket')
+rpc=$(cat $path_configure | jq -r '.setting.port.rpc')
+node_port=$(cat $path_configure | jq -r '.setting.port.node')
+check_point=$(cat $path_configure | jq -r '.setting.port.check_point')
+
 thread_tx_rate=`expr $tx_rate / $thread_num`
 one_period=`expr $thread_tx_rate \* $duration_time`
 iter=`expr $node_num - 1`
@@ -34,7 +41,14 @@ node ../../../modconfig.js
 
 ## start the nodes
 # 1.build config
-sh configGenerate.sh $path_testnet $node_num "0"  # 0 is leader node number
+
+if [ "$consensus" = "raft" ]; then
+    cd ../../../raft/code/script/
+    sh quorum_node_creator.sh raft $path_testnet $node_num
+    cd ../../../quorum/code/script/
+else
+    sh configGenerate.sh $path_testnet $node_num "0"  # 0 is leader node number
+fi
 
 # 2.transfer config & start the node
 
@@ -44,14 +58,20 @@ do
     region=$(echo $region_list | jq -r .[$region_index])
     echo "transfer config data to instance : $instance_name$node_index region $region"
     gcloud compute scp --project "$gcloud_proj_name" --recurse "$path_testnet/node$node_index/data" "$instance_name$node_index":~/. --zone "$region"
-    gcloud compute --project "$gcloud_proj_name" ssh --zone "$region" "$instance_name$node_index" \
-    --command="sh startQuorum.sh data 22000 20200 30300 $block_time" &   # [da ta_path, web_socket port, rpc port, node_port, block_time]
+    if [ "$consensus" = "raft" ]; then
+        gcloud compute --project "$gcloud_proj_name" ssh --zone "$region" "$instance_name$node_index" \
+        --command="sh startRaft.sh data $web_socket $rpc $node_port $check_point" &   # [data_path, web_socket port, rpc port, node_port, check_point_port]
+    else
+        gcloud compute --project "$gcloud_proj_name" ssh --zone "$region" "$instance_name$node_index" \
+        --command="sh startQuorum.sh data $web_socket $rpc $node_port $block_time" &   # [data_path, web_socket port, rpc port, node_port, block_time]
+    fi
 done
 echo "sleep $process_sleep"
 sleep $process_sleep
 
 ## send transactions & monitor result
 # 1.workload send transaction multi thread
+rm -r $path_rec/node*
 for i in $(seq 1 $thread_num)
 do
     slice=0
@@ -59,12 +79,11 @@ do
     slice=`expr $slice + $one_period`
 done
 
-# active monitor - check all transaction done
+# 2.active monitor - check all transaction done
 node ../txMonitor.js $tx_rate $duration_time $repeat
 
 ## post process
 # 1.get log
-rm -r $path_rec/node*
 for node_index in $(seq 0 $iter)
 do
     node_path=$path_rec/node$node_index
@@ -77,8 +96,8 @@ do
     gcloud compute --project "$gcloud_proj_name" ssh --zone "$region" "$instance_name$node_index" \
     --command="gcloud compute scp --recurse $path_log $dispatcher_name:$path_rec/node$node_index --zone asia-east1-b" &
 done
-echo "sleep $process_sleep"
-sleep $process_sleep
+echo "sleep $sleep_time"
+sleep $sleep_time
 
 # 2.post_process
 node ../postprocess.js
@@ -94,7 +113,7 @@ do
     --command="sh killQuorum.sh; gcloud compute scp --project $gcloud_proj_name --recurse $path_micro_data $dispatcher_name:$path_rec/node$node_index --zone asia-east1-b" &
 done
 echo "sleep $process_sleep"
-sleep $process_sleep[]
+sleep $process_sleep
 
 ## copy report to report dir
 
