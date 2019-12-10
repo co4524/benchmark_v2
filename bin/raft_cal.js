@@ -16,16 +16,31 @@ for (let i = 1; i <= REPEAT; i++) {
     return a - b;
   });
   
+  // raft_tps
+  let txs_count = 0
+  let start_time=[]
+  let end_time=[]
+  for (let i = 0; i < block.length-1; i++){
+    txs_count += post_process[`block_${block[i]}`].transactions.length
+  }
+
+  for (let i = 0; i < parseInt(node_num, 10) ; i++){
+    let time = post_process[`block_${block[0]}`].timestamp[i]
+    start_time.push(time[`node${i}`])
+  }
+
+  for (let i = 0; i < parseInt(node_num, 10) ; i++){
+    let time = post_process[`block_${block[block.length-1]}`].timestamp[i]
+    end_time.push(time[`node${i}`])
+  }
+  tps.push(txs_count*1000/(stats.median(end_time)-stats.median(start_time)))
 
   for (let j = 1, k = block.length-1; j < k; j++) {  //block.length - 1 for normal situation , block.length for short duration time
     let txs = post_process[`block_${block[j]}`].transactions
     let arr =[]
     for(let l = 0 ; l < parseInt(node_num, 10) ; l ++){
       let time = post_process[`block_${block[j]}`].timestamp[l]
-      let time2 = post_process[`block_${block[j - 1]}`].timestamp[l]
-      let dtime = time[`node${l}`] - time2[`node${l}`] 
       arr.push(time[`node${l}`])
-      tps.push(1000 * (txs.length / (dtime)))
     }
     for (let tx of txs) {
       let tx_timestamp = tx.split(',')[1]/1000000

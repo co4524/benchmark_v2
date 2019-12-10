@@ -24,7 +24,7 @@ if [ $# -eq 0 ]; then
         txRate_iter=`expr $txRate_iter - 1`
     else
         calculate_all=false # false for calculate single
-        transaction_rate=$1
+        graph_name=$1
 fi
 
 python=$(cat $path_configure | jq -r '.setting.python_version')
@@ -42,42 +42,6 @@ model_iter=$(cat $path_configure | jq -r '.setting.model_list' |  jq 'length')
 model_iter=`expr $model_iter - 1`
 test_time=1
 
-## calculate performance from report.json and save the result to txt file
-
-if [ "$calculate_all" = true ]; then
-    for model_index in $(seq 0 $model_iter)
-    do
-        model=$(echo $model_list | jq -r ".[$model_index]")
-        node_num=$(echo $node_number_list | jq -r ".[$model_index]")
-        if [ -d "$report_path/$model" ]; then
-            for tr_index in $(seq 0 $txRate_iter)
-            do
-                tx_rate=$(echo $transaction_rate | jq -r ".[$tr_index]")
-                input_path="$report_path/$model/R$tx_rate-T$DURATION_TIME/rec_data/report$test_time.json"
-                stat_output_path="$report_path/$model/graph_raw_data.txt"
-                if [ -f "$input_path" ]; then
-                    if [ "$consensus" != "raft" ]; then
-                        node cal.js $input_path $stat_output_path $model $tx_rate $node_num
-                    else
-                        node raft_cal.js $input_path $stat_output_path $model $tx_rate $node_num
-                    fi
-                else
-                    echo "path : $input_path doesnt exists"
-                fi
-            done
-        fi
-    done
-    else
-        stat_output_path="$report_path/$model/graph_raw_data.txt"
-        input_path="$report_path/$model/R$transaction_rate-T$DURATION_TIME/rec_data/report$test_time.json"
-        if [ "$consensus" != "raft" ]; then
-            node cal.js $input_path $stat_output_path $model $transaction_rate $node_num
-        else
-            echo $input_path $stat_output_path $model $transaction_rate $node_num
-            node raft_cal.js $input_path $stat_output_path $model $transaction_rate $node_num
-    fi
-fi
-
 ## draw the graph from "micro" data
 
 # get minxium time bound
@@ -87,10 +51,10 @@ getMaxTimeBound(){
         for micro_data in CpuMonitor IoMonitor ProcessMonitor WebMonitor
         do
             if [ "$init" = true ]; then
-                max=$(cat $1/$2/R$3-T$4/rec_data/$5/$micro_data | wc -l)
+                max=$(cat $1/$2/fail/rec_data/$3/$micro_data | wc -l)
                 init=false
             else
-                value=$(cat $1/$2/R$3-T$4/rec_data/$5/$micro_data | wc -l)
+                value=$(cat $1/$2/fail/rec_data/$3/$micro_data | wc -l)
                 if [ $max -gt $value ]; then
                 max=$value
                 fi
@@ -122,7 +86,7 @@ if [ "$calculate_all" = true ]; then
                 input_path="$report_path/$model/R$tx_rate-T$DURATION_TIME/rec_data/$ref_node"
                 if [ -d "$input_path" ]; then
                     echo "draw micro graph $model-R$tx_rate-T$DURATION_TIME"
-                    end=$( getMaxTimeBound $report_path $model $tx_rate $DURATION_TIME $ref_node )
+                    end=$( getMaxTimeBound $report_path $model $ref_node )
                     $python cpuplot.py $start $end $tx_rate $model $input_path
                 else
                     echo "path : $input_path doesnt exists"
@@ -134,21 +98,8 @@ if [ "$calculate_all" = true ]; then
         if [ ! -d "$report_path/$model/graph" ]; then
             mkdir $report_path/$model/graph
         fi
-        input_path="$report_path/$model/R$transaction_rate-T$DURATION_TIME/rec_data/$ref_node"
-        end=$( getMaxTimeBound $report_path $model $transaction_rate $DURATION_TIME $ref_node )
-        $python cpuplot.py $start $end $transaction_rate $model $input_path
+        input_path="$report_path/$model/fail/rec_data/$ref_node"
+        end=$( getMaxTimeBound $report_path $model $ref_node )
+        $python cpuplot.py $start $end $graph_name $model $input_path
 fi
 
-# draw tps latency graph
-
-arg_list="$report_path $consensus"
-for model_index in $(seq 0 $model_iter)
-do
-    model=$(echo $model_list | jq -r ".[$model_index]")
-    if [ -f "$report_path/$model/graph_raw_data.txt" ]; then
-        arg_list="$arg_list $report_path/$model/graph_raw_data.txt"
-    fi
-done
-
-$python plotmultiblocksize.py $arg_list
-$python plotLatencyxTPS.py $arg_list

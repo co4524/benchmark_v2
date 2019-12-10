@@ -45,7 +45,7 @@ for i in range(len(model_list)):
 
 #畫圖
 plt.figure(figsize=(12,7))
-x_lim=0
+x_lim=1000
 y_lim=0
 #plt.subplot(121) #size為 row:1 col:2 共2張圖
 for i in range(len(model_list)):
@@ -57,6 +57,7 @@ for i in range(len(model_list)):
             x_lim=int(txrate[i][j])
         if(y_lim<float(latency[i][j])):
             y_lim=float(latency[i][j])
+
 plt.ylabel("Latency(s)")
 plt.xlabel("Throughput(txs/s)")
 plt.ylim(0,y_lim*y_axis_extend_ratio)

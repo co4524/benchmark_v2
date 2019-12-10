@@ -14,7 +14,7 @@ duration_time = config['setting']['duration_time']
 inargv = sys.argv
 start = int(inargv[1])
 end = int(inargv[2])
-input_rate = int(inargv[3])
+input_rate = inargv[3]
 model = inargv[4]
 path = inargv[5]
 
